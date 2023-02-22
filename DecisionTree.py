@@ -31,13 +31,20 @@ class DecisionNodeNumerical():
         return f"[label=<{toAddStr}>, fillcolor=\"#ffffff\"]"
         
 class LeafNode():
-    def __init__(self, value, entropy = None, gini = None):
+    def __init__(self, value, size, entropy = None, gini = None):
         self.value = value
         self.entropy = entropy
         self.gini = gini
+        self.size = size
         
     def to_dot(self):
-        return f"[label=<class = {self.value}<br/> entropy = {round(self.entropy, 2)}>, fillcolor=\"#ffffff\"]"
+        toAdd = []
+        toAdd.append(f"<B>class = {self.value}</B><br/>")
+        toAdd.append(f"entropy = {round(self.entropy, 2)}")
+        toAdd.append(f"size = {self.size}")
+        
+        toAddStr = "<br/>".join(toAdd)
+        return f"[label=<{toAddStr}>, fillcolor=\"#ffffff\"]"
     
 
 class DecisionTreeClassifier:
@@ -87,7 +94,8 @@ class DecisionTreeClassifier:
         value = df[target_col].mode()[0]
         entropy = self.get_entropy(df, target_col)
         gini = self.get_gini(df, target_col)
-        return LeafNode(value, entropy, gini)
+        size = len(df)
+        return LeafNode(value, size, entropy, gini)
     
     def get_best_split(self, df, target_col):
         
@@ -157,4 +165,14 @@ node [shape=box, style="filled, rounded", color="black", fontname="helvetica"] ;
 edge [fontname="helvetica"] ;
                 {linesStr}
 }}"""
+    
         
+    def show_tree(self):
+        text = urllib.parse.urlencode({"thing": self.print_tree()})
+        text = "https://dreampuf.github.io/GraphvizOnline/#" + text[6:].replace("+", "%20")
+        webbrowser.open_new_tab(text)
+        
+        
+        
+                
+                
