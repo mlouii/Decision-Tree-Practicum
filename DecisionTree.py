@@ -67,12 +67,14 @@ class DecisionNodeNumerical(DecisionNode):
 
     """
     
-    def __init__(self, feature_name = None, threshold = None, left = None, right = None, info_gain = None):
+    def __init__(self, feature_name = None, threshold = None, left = None, right = None, info_gain = None, null_direction = None):
         self.feature_name = feature_name
         self.threshold = threshold
         self.left = left
         self.right = right
         self.info_gain = info_gain
+        self.null_direction = null_direction
+        self.target = None
         
     def set_info_gain(self, info_gain):
         self.info_gain = info_gain
@@ -84,15 +86,23 @@ class DecisionNodeNumerical(DecisionNode):
         self.right = right
         
     def left_query(self):
-        return f'`{self.feature_name}` <= {self.threshold}'
+        if self.null_direction == "left":
+            return f'`{self.feature_name}` <= {self.threshold} | `{self.feature_name}`.isnull()'
+        else:
+            return f'`{self.feature_name}` <= {self.threshold}'
     
     def right_query(self):
-        return f'`{self.feature_name}` > {self.threshold}'
+        if self.null_direction == "right":
+            return f'`{self.feature_name}` > {self.threshold} | `{self.feature_name}`.isnull()'
+        else:
+            return f'`{self.feature_name}` > {self.threshold}'
     
     def to_dot(self):
         toAdd = []
         toAdd.append(f"<B>{self.feature_name} &le; {str(self.threshold)}</B><br/>")
         toAdd.append(f"info gain = {str(round(self.info_gain, 2))}")
+        if self.null_direction:
+            toAdd.append(f"null values go {self.null_direction}")
         
         toAddStr = "<br/>".join(toAdd)
         return f"[label=<{toAddStr}>, fillcolor=\"#ffffff\"]"
@@ -142,6 +152,7 @@ class DecisionTreeClassifier:
         self.max_depth = max_depth
         self.min_sample_leaf = min_sample_leaf        
         self.root = None
+        self.cols_with_missing = []
         
     def split(self, df, decisionNode):
         assert isinstance(decisionNode, DecisionNode), "Split received a Non Decision Node!"
@@ -193,15 +204,21 @@ class DecisionTreeClassifier:
                 continue
             
             possible_thresholds = np.unique(df[column])
+            possible_thresholds = possible_thresholds[~np.isnan(possible_thresholds)]
             for threshold in possible_thresholds:
-                decisionNode = DecisionNodeNumerical(feature_name=column, threshold=threshold)
-                df_left, df_right = self.split(df, decisionNode)
-                curr_info_gain = self.get_information_gain(df, df_left, df_right, target_col, "entropy")
-#                 print(curr_info_gain)
-                if curr_info_gain > max_info_gain:
-                    decisionNode.set_info_gain(curr_info_gain)
-                    best_decision = decisionNode
-                    max_info_gain = curr_info_gain
+                
+                missingDirections = [None]
+                if column in self.cols_with_missing:
+                    missingDirections = ["left", "right"]
+                for direction in missingDirections:
+                    decisionNode = DecisionNodeNumerical(feature_name=column, threshold=threshold, null_direction=direction)
+                    df_left, df_right = self.split(df, decisionNode)
+                    curr_info_gain = self.get_information_gain(df, df_left, df_right, target_col, "entropy")
+    #                 print(curr_info_gain)
+                    if curr_info_gain > max_info_gain:
+                        decisionNode.set_info_gain(curr_info_gain)
+                        best_decision = decisionNode
+                        max_info_gain = curr_info_gain
         
         return best_decision 
     
@@ -222,11 +239,14 @@ class DecisionTreeClassifier:
         return leaf_node
             
     def fit(self, df, target):
+        self.target = target
+        self.cols_with_missing = list(df.columns[df.isnull().any(axis=0)])
         self.root = self.build_tree(df, target, 0)
         
     def print_tree(self):
         lines = []
         global_node_id = 0
+        leaf_vals = np.unique(df[self.target])
         
         def helper(node, parent_id):
             nonlocal lines
@@ -244,6 +264,8 @@ class DecisionTreeClassifier:
                     helper(node.right, node_id)
         
         helper(self.root, None)
+        print(leaf_vals)
+        lines = self.__assign_colors_to_leafs(lines, leaf_vals)
         linesStr = "\n".join(lines)
         
         return f"""digraph Tree {{
@@ -252,6 +274,17 @@ edge [fontname="helvetica"] ;
                 {linesStr}
 }}"""
     
+    def __assign_colors_to_leafs(self, lines, leaf_vals):
+        def change_color(line):
+            nonlocal mapping
+            value = line.split("class = ")[1].split("</B>")[0]
+            return line.replace("#ffffff", mapping[value])
+        
+        _HEX = '89ABCDEF'
+        mapping = {str(val):'#' + ''.join(random.choice(_HEX) for _ in range(6)) for val in leaf_vals}
+        return [change_color(line) if "class" in line else line for line in lines]
+
+
         
     def show_tree(self):
         text = urllib.parse.urlencode({"thing": self.print_tree()})
