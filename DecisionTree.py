@@ -1,4 +1,72 @@
-class DecisionNodeNumerical():
+
+from abc import ABC, abstractmethod
+
+# Abstract Classes are not strictly enforced in Python, but it serves as a to-do list for implementing Decision Node type classes.
+
+class Node(ABC):
+    @abstractmethod
+    def to_dot(self):
+        """
+        Helps represent this DecisionNode in the dot visualization format
+
+        Returns:
+            dot_representation (str)
+        """
+        pass
+
+class DecisionNode(Node):
+    
+    # setter function
+    @abstractmethod
+    def set_info_gain(self, info_gain):
+        pass
+    
+    # setter function
+    @abstractmethod    
+    def set_left(self, left):
+        pass
+    
+    # setter function
+    @abstractmethod    
+    def set_right(self, right):
+        pass
+
+    @abstractmethod
+    def left_query(self):
+        """
+        Generates the Pandas query string for the DataFrame to the left of the node
+
+        Returns:
+            query_text (str)
+        """
+        pass
+    
+    @abstractmethod
+    def right_query(self):
+        """
+        Generates the Pandas query string for the DataFrame to the right of the node
+
+        Returns:
+            query_text (str)
+        """
+        pass
+
+
+class DecisionNodeNumerical(DecisionNode):
+    
+    """
+    A class that represents node in the Decision tree in which a decision is made.
+    It requires that the column be of a numerical, rather than categorical type.
+
+    Attributes:
+        feature_name (str): The name of the feature to be splitted on.
+        threshold (float): The float value to partition the dataset based on the feature
+        left (Node): The left child of this node
+        right (Node): The right child of this node
+        info_gain (float): The information gain value of this node
+
+    """
+    
     def __init__(self, feature_name = None, threshold = None, left = None, right = None, info_gain = None):
         self.feature_name = feature_name
         self.threshold = threshold
@@ -8,7 +76,6 @@ class DecisionNodeNumerical():
         
     def set_info_gain(self, info_gain):
         self.info_gain = info_gain
-
         
     def set_left(self, left):
         self.left = left
@@ -30,13 +97,25 @@ class DecisionNodeNumerical():
         toAddStr = "<br/>".join(toAdd)
         return f"[label=<{toAddStr}>, fillcolor=\"#ffffff\"]"
         
-class LeafNode():
+class LeafNode(Node):
+
+    """
+    A class that represents a final classification in the Decision tree
+
+    Attributes:
+        value (str or int): The final classification value
+        entropy (float): Entropy value of this node
+        gini (float): Gini value of this node
+        size (int): Number of samples in the LeafNode
+
+    """
+
     def __init__(self, value, size, entropy = None, gini = None):
         self.value = value
         self.entropy = entropy
         self.gini = gini
         self.size = size
-        
+ 
     def to_dot(self):
         toAdd = []
         toAdd.append(f"<B>class = {self.value}</B><br/>")
@@ -48,18 +127,25 @@ class LeafNode():
     
 
 class DecisionTreeClassifier:
+
+    """
+    Represents the classifier
+
+    Attributes:
+        max_depth (str or int): The final classification value
+        min_sample_leaf (float): Entropy value of this node
+
+    """
     
     def __init__(self, max_depth = None, min_sample_leaf = None):
         self.depth = 0
         self.max_depth = max_depth
-        self.min_sample_leaf = min_sample_leaf
-        
-        import numpy as np
-        
+        self.min_sample_leaf = min_sample_leaf        
         self.root = None
         
-        
     def split(self, df, decisionNode):
+        assert isinstance(decisionNode, DecisionNode), "Split received a Non Decision Node!"
+        
         df_left = df.query(decisionNode.left_query())
         df_right = df.query(decisionNode.right_query())
         return (df_left, df_right)
