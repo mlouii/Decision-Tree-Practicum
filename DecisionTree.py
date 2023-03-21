@@ -132,7 +132,7 @@ class LeafNode(Node):
     """
 
     def __init__(self, value, size, entropy = None, gini = None):
-        self.value = value
+        self.value = str(value)
         self.entropy = entropy
         self.gini = gini
         self.size = size
@@ -498,7 +498,7 @@ class DecisionTreeClassifier:
          Returns:
              str: The cleaned feature name with special characters replaced.
          """
-        
+        feature_name = str(feature_name)
         feature_name = feature_name.replace("<", "&le;")
         feature_name = feature_name.replace(">", "&ge;")
         return feature_name
