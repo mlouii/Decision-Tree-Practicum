@@ -456,10 +456,11 @@ class DecisionTreeClassifier:
          """
         lines = []
         global_node_id = 0
-        leaf_vals = np.unique(df[self.target])
+        leaf_vals = []
 
         def helper(node, parent_id):
             nonlocal lines
+            nonlocal leaf_vals
             nonlocal global_node_id
 
             node_id = global_node_id
@@ -475,9 +476,11 @@ class DecisionTreeClassifier:
                 elif isinstance(node, DecisionNodeCategorical):
                     for category, child in node.children.items():
                         helper(child, node_id)
+                elif isinstance(node, LeafNode):
+                    leaf_vals.append(node.value)
 
         helper(self.root, None)
-        lines = self.__assign_colors_to_leafs(lines, leaf_vals)
+        lines = self.__assign_colors_to_leafs(lines, np.unique(leaf_vals))
         linesStr = "\n".join(lines)
 
         return f"""digraph Tree {{
