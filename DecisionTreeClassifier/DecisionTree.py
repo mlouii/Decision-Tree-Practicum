@@ -162,7 +162,7 @@ class DecisionTreeClassifier:
 
     """
     
-    def __init__(self, max_depth = None, min_sample_leaf = None, print_interval=1):
+    def __init__(self, max_depth = None, min_sample_leaf = None, print_interval = 1):
         self.depth = 0
         self.max_depth = max_depth
         self.min_sample_leaf = min_sample_leaf        
@@ -351,6 +351,7 @@ class DecisionTreeClassifier:
 
         Returns:
             DecisionNode or LeafNode: The root node of the built tree
+            
         """
         if self.last_print_time is None:
             self.last_print_time = time.time()

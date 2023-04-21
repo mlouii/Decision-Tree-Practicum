@@ -1,4 +1,4 @@
-from DecisionTree import *
+from DecisionTreeClassifier.DecisionTree import *
 import unittest
 import pandas as pd
 import numpy as np
@@ -169,6 +169,8 @@ class TestDecisionTreeClassifier(unittest.TestCase):
         self.model.fit(self.df, self.target_col)
         predictions = self.model.predict(pd.DataFrame({"feature1": [2, 3], "feature2": [4, 11]}))
         self.assertEqual(predictions, ['0', '1'])
+
+        
 
     def tearDown(self):
         del self.df
