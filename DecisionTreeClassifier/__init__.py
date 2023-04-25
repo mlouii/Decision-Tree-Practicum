@@ -1,1 +1,1 @@
-from DecisionTree import DecisionTreeClassifier
+from .DecisionTree import *

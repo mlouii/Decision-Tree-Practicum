@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: DecisionTreeClassifier
+Version: 0.0.5
+Summary: A Decision Tree Classifier.
+Home-page: https://github.com/mlouii/Decision-Tree-Practicum
+Author: Mark Lou, Jobin Joyson
+Author-email: mlou@hawk.iit.edu, jjoyson1@hawk.iit.edu
+License: MIT
+Keywords: decision tree
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Education
+Classifier: Operating System :: Microsoft :: Windows :: Windows 10
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+License-File: LICENCE.txt
+
+First iteration of a decision tree classifier that can handle string variables.

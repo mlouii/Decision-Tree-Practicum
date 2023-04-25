@@ -1,0 +1,9 @@
+LICENCE.txt
+setup.py
+DecisionTreeClassifier/DecisionTreeClassifier.egg-info/PKG-INFO
+DecisionTreeClassifier/DecisionTreeClassifier.egg-info/SOURCES.txt
+DecisionTreeClassifier/DecisionTreeClassifier.egg-info/dependency_links.txt
+DecisionTreeClassifier/DecisionTreeClassifier.egg-info/requires.txt
+DecisionTreeClassifier/DecisionTreeClassifier.egg-info/top_level.txt
+DecisionTreeClassifier/Testing/Testing.py
+DecisionTreeClassifier/Testing/__init__.py
